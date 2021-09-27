@@ -1,16 +1,18 @@
 #include <iostream>
-#include "LinkedList.h"
+#include "Tree.h"
 using namespace std;
-
-
 int main(){
-    LinkedList<int> array = LinkedList<int>();
-    array.push(1);
-    array.push(2);
-    array.pop();
-    array.pop();
-    array.push(13);
-    for (int i = 0; i < 2; ++i) {
-        cout << array.getData(i) << endl;
+    auto test = Tree<int>(1);
+    auto root = test.getRoot();
+    test.attach(root,2);
+    test.attach(root,3);
+    test.attach(root,4);
+    auto children1 = test.getChildren(root);
+    test.attach((*children1)[0],5);
+    test.attach((*children1)[0],6);
+    test.attach((*children1)[0],7);
+    auto list = test.PosTraverse();
+    for (int i = 0; i < list->getScale(); ++i) {
+        cout << (*list)[i]->data << endl;
     }
 }
