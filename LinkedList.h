@@ -32,13 +32,14 @@ private:
 
 public:
     LinkedList();
-
+    ~LinkedList();
     NodeFT<T> *getNode(unsigned int rank);
     T getData(unsigned int rank);
     unsigned int getScale();
     bool isEmpty();
     NodeFT<T> *push(T data); //后入
-    NodeFT<T> *enQueue(T data); //后入
+    NodeFT<T> *enQueueR(T data); //后入
+    NodeFT<T> *enQueueL(T data); //前入
     NodeFT<T> *insertAfter(int rank, T data);
 
     NodeFT<T> *insertBefore(int rank, T data);
@@ -46,10 +47,15 @@ public:
     T pop();  // 后出
     T deQueue(); // 前出
     T popByRank(int rank); // 中出
+    T operator[](int rank);
 };
 
 //--------
 
+template<typename T>
+T LinkedList<T>::operator[](int rank) {
+    return getData(rank);
+}
 
 template<typename T>
 NodeFT<T>::NodeFT(T data, NodeFT<T> *front, NodeFT<T> *back) {
@@ -76,6 +82,14 @@ LinkedList<T>::LinkedList() {
 };
 
 template<typename T>
+LinkedList<T>::~LinkedList<T>() {
+    while (scale != 0){
+        this->pop();
+    }
+    delete blankNode;
+}
+
+template<typename T>
 NodeFT<T> *LinkedList<T>::push(T data) {
     if (scale == 0) {
         nowAt = new NodeFT<T>(data, blankNode, nullptr);
@@ -93,8 +107,13 @@ NodeFT<T> *LinkedList<T>::push(T data) {
 }
 
 template<typename T>
-NodeFT<T> *LinkedList<T>::enQueue(T data) {
+NodeFT<T> *LinkedList<T>::enQueueR(T data) {
     return this->push(data);
+}
+
+template<typename T>
+NodeFT<T> *LinkedList<T>::enQueueL(T data) {
+    return this->insertBefore(data);
 }
 
 template<typename T>
@@ -111,7 +130,7 @@ NodeFT<T> *LinkedList<T>::moveForward() {
 template<typename T>
 NodeFT<T> *LinkedList<T>::moveBackward() {
     if (scale != 0 && nowAt->back != nullptr) {
-        nowAt = nowAt->front;
+        nowAt = nowAt->back;
         nowRank++;
         return nowAt;
     } else {
@@ -174,7 +193,7 @@ T LinkedList<T>::popByRank(int rank) {
         tail = blankNode;
         head = blankNode;
         T data = head->back->data;
-        delete head->data;
+        delete head->back;
         head->back = nullptr;
         return data;
     } else if(rank == 0) {
