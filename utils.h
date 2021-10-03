@@ -2,6 +2,7 @@
 // Created by 浆布 on 25/09/2021.
 //
 #include <iostream>
+#include <ctime>
 
 using namespace std;
 
@@ -11,7 +12,7 @@ using namespace std;
 template<typename T>
 unsigned int BKDRhash(T *key, int scale);
 int getMax(int* array,int scale);
-
+int getRand(int a,int b);
 
 
 //--------
@@ -24,7 +25,6 @@ unsigned int BKDRhash(T *key, int scale) {
     while (i < scale * sizeof(T)) {
         hash = hash * seed + (*point++);
         i++;
-        cout << i << endl;
     }
     return hash;
 };
@@ -38,6 +38,17 @@ int getMax(int *array, int scale) {
         }
     }
     return maxRank;
+}
+
+int getRand(int a,int b){
+    static unsigned int recorde = unsigned(time(0));
+    static unsigned int del = 0;
+    unsigned int randSeed;
+    randSeed = recorde+del;
+    srand(randSeed);
+    int delta = rand()%(b-a+1);
+    del = rand();
+    return a+delta;
 }
 
 #endif //AI_UTILS_H

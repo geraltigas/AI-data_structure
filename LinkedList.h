@@ -41,9 +41,8 @@ public:
     NodeFT<T> *enQueueR(T data); //后入
     NodeFT<T> *enQueueL(T data); //前入
     NodeFT<T> *insertAfter(int rank, T data);
-
     NodeFT<T> *insertBefore(int rank, T data);
-
+    void clear();
     T pop();  // 后出
     T deQueue(); // 前出
     T popByRank(int rank); // 中出
@@ -278,6 +277,13 @@ unsigned int LinkedList<T>::getScale() {
 template<typename T>
 bool LinkedList<T>::isEmpty() {
     return (bool)scale;
+}
+
+template<typename T>
+void LinkedList<T>::clear() {
+    while (this->scale != 0){
+        this->pop();
+    }
 }
 
 
