@@ -1,84 +1,302 @@
+// headfile
+#include <list> // single linked list
 #include <iostream>
-#include "Tree.h"
-#include "Hashmap.h"
-#include "utils.h"
-#include "Hashmap.h"
-using namespace std;
-struct order {
-    int yuanyin;
-    int fuyin;
+#include <stack>
+#include <set>
+#include "struct.h"
+#include "util.h"
+using std::stack;
+using std::cout;
+using std::endl;
+using std::list;
+
+int originStatus[3][3] = {
+        {2,8,3},
+        {1,6,4},
+        {7,0,5}
 };
 
-bool result[1000][500] = {false};
+int goalStatus[3][3] = {
+        {1,2,3},
+        {8,0,4},
+        {7,6,5}
+};
 
-order matris[10][5] = {{0,0}};
 
-void setResult(int yuanyin,int fuyin){
-    result[yuanyin-1][fuyin-1] = true;
+
+// different searching method;
+
+// depth first searching
+void dfs(){
+    cout << "depth first search" << endl;
+    status origin = status(0,-1,originStatus);
+    status goal = status(0,-1,goalStatus);
+    list<status> allStatus;
+    list<status> open;
+    queue<status> closed;
+    long goalHash = -1;
+
+    // init
+    allStatus.push_back(origin);
+    open.push_back(origin);
+    list<status> nextStstuses = list<status>();
+    //genarate next status
+    while (goalHash == -1){
+        genarate(open,allStatus,nextStstuses);
+        open.pop_front();
+        for (auto pointer = nextStstuses.begin(); pointer != nextStstuses.end() ; ++pointer) {
+            if (*pointer == goal){
+                goalHash = pointer->hash;
+                break;
+            } else{
+                if(pointer->legth <= 5){
+                    open.push_front(*pointer);
+                }
+            }
+        }
+        nextStstuses.clear();
+    }
+    printPath(goalHash,allStatus);
 }
 
-bool getResult(int yuanyin,int fuyin){
-    return result[yuanyin-1][fuyin-1];
+// breadth first searching
+void bfs(){
+    cout << "breadth first search" << endl;
+    status origin = status(0,-1,originStatus);
+    status goal = status(0,-1,goalStatus);
+    list<status> allStatus;
+    list<status> open;
+    queue<status> closed;
+    long goalHash = -1;
+
+    // init
+    allStatus.push_back(origin);
+    open.push_back(origin);
+    list<status> temList;
+    while (goalHash == -1){
+        int size = open.size();
+        for(auto i = 0; i < size;i++){
+            genarate(open,allStatus,temList);
+            open.pop_front();
+        }
+        for (auto poi = temList.begin(); poi != temList.end(); poi++) {
+            open.push_back(*poi);
+        }
+        for (auto pointer = open.begin(); pointer != open.end() ; ++pointer) {
+            if (*pointer == goal){
+                goalHash = pointer->hash;
+                break;
+            } else{
+            }
+        }
+        temList.clear();
+    }
+    printPath(goalHash,allStatus);
+}
+
+// climb
+
+
+void clime(){
+    cout << "hill climing search" << endl;
+    status origin = status(0,-1,originStatus);
+    status goal = status(0,-1,goalStatus);
+
+    long goalhash = -1;
+    multiset<status> open;
+    multiset<status> closed;
+    open.insert(origin);
+    list<status> temp;
+
+    status::isBeFS = true;
+
+    while(goalhash == -1){
+        genarate(open,temp,closed);
+        closed.insert(*open.begin());
+        open.clear();
+        for (auto i = temp.begin(); i != temp.end() ; ++i) {
+            if (!exist(closed,*i) ){
+                if( *i == goal) {
+                    goalhash = i->hash;
+                    break;
+                }else{
+                    open.insert(*i);
+                    closed.insert(*i);
+                }
+            }
+        }
+        temp.clear();
+        if (goalhash != -1) break;
+    }
+//
+//    while (goalhash == -1){
+//        genarate(open,temp);
+//        open.clear();
+//        for (auto i = temp.begin(); i != temp.end() ; ++i) {
+//            if(!exist(allStatus,*i)){
+//                if (*i == goal){
+//                    goalhash = i->hash;
+//                }else{
+//                    open.insert(*i);
+//                    allStatus.insert(*i);
+//                }
+//            }
+//        }
+//        temp.clear();
+//    }
+
+    list<status> listP;
+    for (auto i = closed.begin(); i != closed.end() ; ++i) {
+        listP.push_back(*i);
+    }
+
+    stack<status> path;
+
+    path.push(goal);
+
+    while (goalhash != -1){
+        status ok = find(goalhash,listP);
+        path.push(ok);
+        goalhash = ok.hashP;
+    }
+
+
+    while (!path.empty()){
+        status ok = path.top();
+        print(ok);
+        path.pop();
+    }
+
+}
+
+
+// best-first searching
+void bestFirstSearching(){
+    cout << "best first search" << endl;
+    status origin = status(0,-1,originStatus);
+    status goal = status(0,-1,goalStatus);
+
+    multiset<status> open;
+    open.insert(origin);
+
+    list<status> temp;
+
+    multiset<status> closed;
+
+    multiset<status> allStatus;
+    allStatus.insert(origin);
+
+    long goalhash = -1;
+
+    while (goalhash == -1){
+        genarate(open,temp);
+        status temps = *open.begin();
+        closed.insert(temps);
+        open.erase(open.begin());
+        for (auto i = temp.begin(); i != temp.end() ; ++i) {
+            if(!exist(allStatus,*i)){
+                if (*i == goal){
+                    goalhash = i->hash;
+                }else{
+                    open.insert(*i);
+                    allStatus.insert(*i);
+                }
+            }
+        }
+    }
+
+    list<status> listP;
+    for (auto i = allStatus.begin(); i != allStatus.end() ; ++i) {
+        listP.push_back(*i);
+    }
+
+    stack<status> path;
+
+    path.push(goal);
+
+    while (goalhash != -1){
+        status ok = find(goalhash,listP);
+        path.push(ok);
+        goalhash = ok.hashP;
+    }
+
+
+    while (!path.empty()){
+        status ok = path.top();
+        print(ok);
+        path.pop();
+    }
+
+}
+
+// a_star searching
+void aStarSearching(){
+    cout << "a star sreaching" << endl;
+    status origin = status(0,-1,originStatus);
+    status goal = status(0,-1,goalStatus);
+
+    status::isBeFS = false;
+
+    multiset<status> open;
+    open.insert(origin);
+
+    list<status> temp;
+
+    multiset<status> closed;
+
+    multiset<status> allStatus;
+    allStatus.insert(origin);
+
+    long goalhash = -1;
+
+    while (goalhash == -1){
+        genarate(open,temp);
+        status temps = *open.begin();
+        closed.insert(temps);
+        open.erase(open.begin());
+        for (auto i = temp.begin(); i != temp.end() ; ++i) {
+            if(!exist(allStatus,*i)){
+                if (*i == goal){
+                    goalhash = i->hash;
+                }else{
+                    open.insert(*i);
+                    allStatus.insert(*i);
+                }
+            }
+        }
+    }
+
+    list<status> listP;
+    for (auto i = allStatus.begin(); i != allStatus.end() ; ++i) {
+        listP.push_back(*i);
+    }
+
+    stack<status> path;
+
+    path.push(goal);
+
+    while (goalhash != -1){
+        status ok = find(goalhash,listP);
+        path.push(ok);
+        goalhash = ok.hashP;
+    }
+
+
+    while (!path.empty()){
+        status ok = path.top();
+        print(ok);
+        path.pop();
+    }
+
 }
 
 
 int main(){
-    for (int i = 1; i <= 10; ++i) {
-        for (int j = 1; j <= 5; ++j) {
-            matris[i-1][j-1].yuanyin = getRand(1,5);
-            matris[i-1][j-1].fuyin = getRand(1,10);
-//            cout << "(" << matris[i-1][j-1].yuanyin << "," << matris[i-1][j-1].fuyin << ") ";
-            while (getResult(matris[i-1][j-1].yuanyin,matris[i-1][j-1].fuyin)){
-//                cout << "有重复" << endl;
-                matris[i-1][j-1].yuanyin = getRand(1,5);
-                matris[i-1][j-1].fuyin = getRand(1,10);
-//                cout << "(" << matris[i-1][j-1].yuanyin << "," << matris[i-1][j-1].fuyin << ") ";
-            }
-            setResult(matris[i-1][j-1].yuanyin,matris[i-1][j-1].fuyin);
-        }
-        cout << endl << "第" << i << "天" << endl;
-        for (int x = 1; x <= 5; ++x) {
-            cout << "(" << matris[i - 1][x - 1].yuanyin << "," << matris[i - 1][x - 1].fuyin << ") ";
-        }
-    }
+    dfs();
+    bfs();
+
+    status::isBeFS = true;
+//    clime();
+    bestFirstSearching();
+    aStarSearching();
 }
-
-//bool* array =new bool[50];
-//
-//order* getOrder(order * matix,int day, int sequence){
-//    return matix +5*(day-1) + (sequence -1);
-//}
-//
-//bool isExist(int yuanyin,int fuyin){
-//    return *(array+10*(yuanyin-1)+(fuyin-1));
-//}
-//
-//void setExist(int day,int sequence){
-//    *(array+10*(day-1)+(sequence-1)) = true;
-//}
-//
-//int main(){
-//    for (int i = 0; i < 50; ++i) {
-//        array[i] = false;
-//    }
-//    order *matix = new order[10*5];
-//    for (int i = 1; i <= 10; ++i) {
-//        for (int j = 1; j <= 5; ++j) {
-//            order* pointer = getOrder(matix,i,j);
-//            pointer->fuyin = getRand(1,10);
-//            pointer->yuanyin = getRand(1,5);
-//            while (isExist(pointer->yuanyin,pointer->fuyin)) {
-//                pointer->fuyin = getRand(1,10);
-//                pointer->yuanyin = getRand(1,5);
-//            }
-//            setExist(pointer->yuanyin,pointer->fuyin);
-//        }
-//        cout << "第" << i << "天"<< endl;
-//        for (int x = 1; x <= 5; ++x) {
-//            cout << "(" <<getOrder(matix,i,x)->yuanyin << "," << getOrder(matix,i,x)->fuyin << ") ";
-//        }
-//        cout << endl;
-//    }
-//}
-
-
